@@ -54,7 +54,7 @@ export async function extractDataFromFile(file: File): Promise<ExtractedData> {
   } catch (error) {
     if (error instanceof GoogleGenerativeAIFetchError && error.message.includes('503')) {
       console.error('Service overload error:', error);
-      throw new Error('The model is currently overloaded. Please try again later.');
+      throw new Error('The model is currently overloaded Check logs. Please try again later.');
     }
     console.error('Detailed error processing file:', error);
     throw new Error('Failed to process file. Please check the file and try again.');
