@@ -61,21 +61,22 @@ function App() {
                   <Paper elevation={3} sx={{ overflow: 'hidden' }}>
                     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                       <Tabs value={currentTab} onChange={handleTabChange} variant="fullWidth">
+                      <Tab label="Customers" />
                         <Tab label="Invoices" />
                         <Tab label="Products" />
-                        <Tab label="Customers" />
+                       
                       </Tabs>
                     </Box>
 
                     <AnimatePresence mode="wait">
                       <motion.div key={currentTab} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
-                      <TabPanel value={currentTab} index={2}>
+                      <TabPanel value={currentTab} index={0}>
                           <CustomersTab />
                         </TabPanel>
-                        <TabPanel value={currentTab} index={0}>
+                        <TabPanel value={currentTab} index={1}>
                           <InvoicesTab />
                         </TabPanel>
-                        <TabPanel value={currentTab} index={1}>
+                        <TabPanel value={currentTab} index={2}>
                           <ProductsTab />
                         </TabPanel>                       
                       </motion.div>
