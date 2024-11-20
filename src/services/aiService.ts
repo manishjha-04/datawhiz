@@ -99,7 +99,8 @@ const validateAndProcessResponse = (text: string): ExtractedData => {
           invoices: {},
           products: {},
           customers: {}
-        }
+        },
+        warnings: []
       }
     };
 
@@ -135,10 +136,7 @@ const validateAndProcessResponse = (text: string): ExtractedData => {
     // Process invoices with normalized tax values
     const invoices = ensureArray(parsed.invoices);
     invoices.forEach((invoice: any) => {
-      // Normalize numeric values including tax
       const normalizedInvoice = normalizeNumericValues(invoice);
-      
-      // Validate the invoice
       const { errors, warnings, unexpectedFields } = validateInvoiceData(normalizedInvoice);
       
       if (errors.length === 0) {
@@ -150,14 +148,15 @@ const validateAndProcessResponse = (text: string): ExtractedData => {
           validatedData.metadata!.unexpectedFields!.invoices![invoiceId] = unexpectedFields;
         }
         
-        validatedData.invoices.push(normalizedInvoice);
-        
-        // Log warnings but don't prevent processing
+        // Store warnings in metadata
         if (warnings.length > 0) {
-          console.warn(`Warnings for invoice ${invoiceId}:`, warnings);
+          validatedData.metadata!.warnings = validatedData.metadata!.warnings || [];
+          validatedData.metadata!.warnings.push(...warnings);
         }
+        
+        validatedData.invoices.push(normalizedInvoice);
       } else {
-        console.error('Invoice validation errors:', errors);
+        console.error('Critical invoice validation errors:', errors);
       }
     });
 

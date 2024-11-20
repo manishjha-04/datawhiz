@@ -73,10 +73,10 @@ export const validateInvoiceData = (invoice: any): ValidationResult => {
     }
   });
 
-  // Validate tax breakdown if present
+  // Move tax validation to warnings instead of errors
   if (invoice.cgst || invoice.sgst) {
-    const taxErrors = validateTaxBreakdown(invoice);
-    result.errors.push(...taxErrors);
+    const taxWarnings = validateTaxBreakdown(invoice);
+    result.warnings.push(...taxWarnings);
   }
 
   return result;
@@ -160,23 +160,23 @@ export const validateCustomerData = (customer: any): string[] => {
 };
 
 export const validateTaxBreakdown = (invoice: any): string[] => {
-  const errors: string[] = [];
+  const warnings: string[] = [];
   
   if (invoice.cgst && invoice.sgst) {
     const totalTax = Number((invoice.cgst + invoice.sgst).toFixed(2));
     if (Math.abs(invoice.tax - totalTax) > 0.01) {
-      // errors.push(`Tax amount (${invoice.tax}) doesn't match CGST (${invoice.cgst}) + SGST (${invoice.sgst}) = ${totalTax}`);
+      warnings.push(`Warning: Tax amount (${invoice.tax}) doesn't match CGST (${invoice.cgst}) + SGST (${invoice.sgst}) = ${totalTax}`);
     }
   }
 
   if (invoice.taxableAmount && invoice.totalAmount) {
     const calculatedTotal = Number((invoice.taxableAmount + invoice.tax).toFixed(2));
     if (Math.abs(invoice.totalAmount - calculatedTotal) > 0.01) {
-      // errors.push(`Total amount (${invoice.totalAmount}) doesn't match taxable amount (${invoice.taxableAmount}) + tax (${invoice.tax}) = ${calculatedTotal}`);
+      warnings.push(`Warning: Total amount (${invoice.totalAmount}) doesn't match taxable amount (${invoice.taxableAmount}) + tax (${invoice.tax}) = ${calculatedTotal}`);
     }
   }
 
-  return errors;
+  return warnings;
 };
 
 export const validateProductQuantities = (invoice: any, products: any[]): string[] => {

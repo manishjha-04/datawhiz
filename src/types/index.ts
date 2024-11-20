@@ -46,5 +46,6 @@ export interface ExtractedData {
       products?: Record<string, string[]>;
       customers?: Record<string, string[]>;
     };
+    warnings?: string[];
   };
 } 
