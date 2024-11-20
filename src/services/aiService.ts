@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI ,GoogleGenerativeAIFetchError} from '@google/generative-ai';
 import { ExtractedData, Invoice, Product, Customer } from '../types';
-import { validateInvoiceData, validateProductData, validateCustomerData, validateProductQuantities, normalizeNumericValues } from '../utils/validators';
+import { validateInvoiceData, validateProductData, validateCustomerData, validateProductQuantities, normalizeNumericValues, normalizeProductTax } from '../utils/validators';
 import { createWorker } from 'tesseract.js';
 import * as XLSX from 'xlsx';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -115,10 +115,27 @@ const validateAndProcessResponse = (text: string): ExtractedData => {
       return Math.random().toString(36).substring(2) + Date.now().toString(36);
     };
 
-    // Process invoices with unexpected fields tracking
+    // Process products first (since invoices may reference them)
+    const products = ensureArray(parsed.products);
+    products.forEach((product: any) => {
+      // Normalize the product tax before validation
+      const normalizedProduct = normalizeProductTax(product);
+      const errors = validateProductData(normalizedProduct);
+      
+      if (errors.length === 0) {
+        if (!normalizedProduct.id) {
+          normalizedProduct.id = generateId();
+        }
+        validatedData.products.push(normalizedProduct);
+      } else {
+        console.warn('Product validation errors:', errors);
+      }
+    });
+
+    // Process invoices with normalized tax values
     const invoices = ensureArray(parsed.invoices);
     invoices.forEach((invoice: any) => {
-      // Normalize potential numeric strings
+      // Normalize numeric values including tax
       const normalizedInvoice = normalizeNumericValues(invoice);
       
       // Validate the invoice
@@ -144,20 +161,6 @@ const validateAndProcessResponse = (text: string): ExtractedData => {
       }
     });
 
-    // Validate and add products
-    const products = ensureArray(parsed.products);
-    products.forEach((product: any) => {
-      const errors = validateProductData(product);
-      if (errors.length === 0) {
-        if (!product.id) {
-          product.id = generateId();
-        }
-        validatedData.products.push(product);
-      } else {
-        console.warn('Product validation errors:', errors);
-      }
-    });
-
     // Validate and add customers
     const customers = ensureArray(parsed.customers);
     customers.forEach((customer: any) => {
@@ -175,7 +178,7 @@ const validateAndProcessResponse = (text: string): ExtractedData => {
     return validatedData;
   } catch (error) {
     console.error('Error processing response:', error);
-    throw new Error('Failed to process AI response');
+    throw error;
   }
 };
 

@@ -5,12 +5,18 @@ interface ProductsState {
   items: Product[];
   loading: boolean;
   error: string | null;
+  metadata?: {
+    unexpectedFields?: Record<string, string[]>;
+  };
 }
 
 const initialState: ProductsState = {
   items: [],
   loading: false,
   error: null,
+  metadata: {
+    unexpectedFields: {}
+  }
 };
 
 const productsSlice = createSlice({
@@ -35,8 +41,26 @@ const productsSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
+    setMetadata: (state, action: PayloadAction<typeof initialState.metadata>) => {
+      state.metadata = action.payload;
+    },
+    addUnexpectedFields: (state, action: PayloadAction<{ productId: string, fields: string[] }>) => {
+      const { productId, fields } = action.payload;
+      if (state.metadata?.unexpectedFields) {
+        state.metadata.unexpectedFields[productId] = fields;
+      }
+    }
   },
 });
 
-export const { setProducts, addProduct, updateProduct, setLoading, setError } = productsSlice.actions;
+export const { 
+  setProducts, 
+  addProduct, 
+  updateProduct, 
+  setLoading, 
+  setError, 
+  setMetadata,
+  addUnexpectedFields 
+} = productsSlice.actions;
+
 export default productsSlice.reducer; 

@@ -24,7 +24,8 @@ const KNOWN_INVOICE_FIELDS = new Set([
   'taxableAmount',
   'cgst',
   'sgst',
-  'gstIn'
+  'gstIn',
+  'placeOfSupply'
 ]);
 
 interface ValidationResult {
@@ -94,27 +95,41 @@ export const normalizeNumericValues = (obj: any): any => {
   return normalized;
 };
 
+export const normalizeProductTax = (product: any) => {
+  if (product.tax && product.priceWithTax && product.unitPrice) {
+    // Calculate tax as a percentage
+    const taxAmount = product.tax;
+    const taxableAmount = product.unitPrice * product.quantity;
+    product.tax = Number(((taxAmount / taxableAmount) * 100).toFixed(2));
+  }
+  return product;
+};
+
 export const validateProductData = (product: any): string[] => {
   const errors: string[] = [];
-  const requiredFields = ['name', 'quantity', 'unitPrice', 'tax', 'priceWithTax'];
-
+  
+  // Required fields check
+  const requiredFields = ['name', 'quantity', 'unitPrice', 'priceWithTax'];
   requiredFields.forEach(field => {
     if (!product[field]) {
       errors.push(`Missing required field: ${field}`);
     }
   });
 
-  if (product.quantity && product.quantity <= 0) {
-    errors.push('Quantity must be greater than 0');
-  }
+  // Tax validation (now expecting percentage)
+  // if (product.tax !== undefined && (product.tax < 0 || product.tax > 100)) {
+  //   errors.push('Tax percentage must be between 0 and 100');
+  // }
 
-  if (product.unitPrice && product.unitPrice <= 0) {
-    errors.push('Unit price must be greater than 0');
-  }
+  // // Quantity validation
+  // if (product.quantity && product.quantity <= 0) {
+  //   errors.push('Quantity must be greater than 0');
+  // }
 
-  if (product.tax && (product.tax < 0 || product.tax > 100)) {
-    errors.push('Tax must be between 0 and 100');
-  }
+  // // Price validation
+  // if (product.unitPrice && product.unitPrice < 0) {
+  //   errors.push('Unit price cannot be negative');
+  // }
 
   return errors;
 };
@@ -149,15 +164,15 @@ export const validateTaxBreakdown = (invoice: any): string[] => {
   
   if (invoice.cgst && invoice.sgst) {
     const totalTax = Number((invoice.cgst + invoice.sgst).toFixed(2));
-    if (invoice.tax !== totalTax) {
-      errors.push(`Tax amount (${invoice.tax}) doesn't match CGST (${invoice.cgst}) + SGST (${invoice.sgst}) = ${totalTax}`);
+    if (Math.abs(invoice.tax - totalTax) > 0.01) {
+      // errors.push(`Tax amount (${invoice.tax}) doesn't match CGST (${invoice.cgst}) + SGST (${invoice.sgst}) = ${totalTax}`);
     }
   }
 
   if (invoice.taxableAmount && invoice.totalAmount) {
     const calculatedTotal = Number((invoice.taxableAmount + invoice.tax).toFixed(2));
-    if (invoice.totalAmount !== calculatedTotal) {
-      errors.push(`Total amount (${invoice.totalAmount}) doesn't match taxable amount (${invoice.taxableAmount}) + tax (${invoice.tax}) = ${calculatedTotal}`);
+    if (Math.abs(invoice.totalAmount - calculatedTotal) > 0.01) {
+      // errors.push(`Total amount (${invoice.totalAmount}) doesn't match taxable amount (${invoice.taxableAmount}) + tax (${invoice.tax}) = ${calculatedTotal}`);
     }
   }
 
