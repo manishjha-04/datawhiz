@@ -32,16 +32,21 @@ interface ValidationResult {
   errors: string[];
   warnings: string[];
   unexpectedFields: string[];
+  validationState: {
+    field: string;
+    message: string;
+    severity: 'error' | 'warning';
+  }[];
 }
 
 export const validateInvoiceData = (invoice: any): ValidationResult => {
   const result: ValidationResult = {
     errors: [],
     warnings: [],
-    unexpectedFields: []
+    unexpectedFields: [],
+    validationState: []
   };
 
-  // Validate required fields
   const requiredFields = [
     'serialNumber',
     'customerName',
@@ -54,7 +59,11 @@ export const validateInvoiceData = (invoice: any): ValidationResult => {
 
   requiredFields.forEach(field => {
     if (!invoice[field]) {
-      result.errors.push(`Missing required field: ${field}`);
+      result.validationState.push({
+        field,
+        message: `Please enter the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`,
+        severity: 'error'
+      });
     }
   });
 

@@ -12,6 +12,8 @@ import {
   Box,
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import { ValidationFeedback } from '../components/ValidationFeedback';
+import { ValidationState } from '../types';
 
 interface Column {
   id: string;
@@ -24,6 +26,8 @@ interface DataTableProps {
   data: any[];
   loading?: boolean;
   error?: string | null;
+  validationStates?: ValidationState[];
+  onFieldFocus?: (field: string) => void;
 }
 
 export const DataTable: React.FC<DataTableProps> = ({
@@ -31,6 +35,8 @@ export const DataTable: React.FC<DataTableProps> = ({
   data,
   loading = false,
   error = null,
+  validationStates = [],
+  onFieldFocus
 }) => {
   if (loading) {
     return (
@@ -52,50 +58,58 @@ export const DataTable: React.FC<DataTableProps> = ({
   }
 
   return (
-    <TableContainer 
-      component={Paper}
-      sx={{ 
-        borderRadius: 2,
-        overflow: 'hidden',
-        '& .MuiTableRow-root:hover': {
-          backgroundColor: 'rgba(0, 0, 0, 0.04)',
-          transition: 'background-color 0.2s ease-in-out'
-        }
-      }}
-    >
-      <Table>
-        <TableHead>
-          <TableRow sx={{ backgroundColor: 'primary.light' }}>
-            {columns.map((column) => (
-              <TableCell 
-                key={column.id}
-                sx={{ 
-                  color: 'white',
-                  fontWeight: 600
-                }}
-              >
-                {column.label}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((row, index) => (
-            <motion.tr
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
-            >
+    <>
+      {validationStates.length > 0 && (
+        <ValidationFeedback 
+          validationStates={validationStates}
+          onFieldFocus={onFieldFocus}
+        />
+      )}
+      <TableContainer 
+        component={Paper}
+        sx={{ 
+          borderRadius: 2,
+          overflow: 'hidden',
+          '& .MuiTableRow-root:hover': {
+            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            transition: 'background-color 0.2s ease-in-out'
+          }
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: 'primary.light' }}>
               {columns.map((column) => (
-                <TableCell key={column.id}>
-                  {column.format ? column.format(row[column.id]) : row[column.id]}
+                <TableCell 
+                  key={column.id}
+                  sx={{ 
+                    color: 'white',
+                    fontWeight: 600
+                  }}
+                >
+                  {column.label}
                 </TableCell>
               ))}
-            </motion.tr>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((row, index) => (
+              <motion.tr
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                {columns.map((column) => (
+                  <TableCell key={column.id}>
+                    {column.format ? column.format(row[column.id]) : row[column.id]}
+                  </TableCell>
+                ))}
+              </motion.tr>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }; 

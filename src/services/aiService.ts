@@ -101,6 +101,11 @@ const validateAndProcessResponse = (text: string): ExtractedData => {
           customers: {}
         },
         warnings: []
+      },
+      validationState: {
+        invoices: {},
+        products: {},
+        customers: {}
       }
     };
 
@@ -116,20 +121,32 @@ const validateAndProcessResponse = (text: string): ExtractedData => {
       return Math.random().toString(36).substring(2) + Date.now().toString(36);
     };
 
-    // Process products first (since invoices may reference them)
+    // Process products with validation feedback
     const products = ensureArray(parsed.products);
     products.forEach((product: any) => {
-      // Normalize the product tax before validation
       const normalizedProduct = normalizeProductTax(product);
-      const errors = validateProductData(normalizedProduct);
+      const validation = validateProductData(normalizedProduct);
       
-      if (errors.length === 0) {
-        if (!normalizedProduct.id) {
-          normalizedProduct.id = generateId();
-        }
-        validatedData.products.push(normalizedProduct);
-      } else {
-        console.warn('Product validation errors:', errors);
+      // Add the product even if it has validation errors
+      if (!normalizedProduct.id) {
+        normalizedProduct.id = generateId();
+      }
+      validatedData.products.push(normalizedProduct);
+      
+      // Ensure validationState is initialized
+      validatedData.validationState = validatedData.validationState || {
+        invoices: {},
+        products: {},
+        customers: {}
+      };
+
+      if (validation.length > 0) {
+        validatedData.validationState.products[normalizedProduct.id] = validation.map(message => ({
+          field: 'product',
+          message,
+          severity: 'error',
+          type: 'error'
+        }));
       }
     });
 

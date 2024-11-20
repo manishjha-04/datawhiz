@@ -36,6 +36,12 @@ export interface Customer {
   address?: string;
 }
 
+export interface ValidationState {
+  field: string;
+  message: string;
+  severity: 'error' | 'warning';
+}
+
 export interface ExtractedData {
   invoices: Invoice[];
   products: Product[];
@@ -47,5 +53,10 @@ export interface ExtractedData {
       customers?: Record<string, string[]>;
     };
     warnings?: string[];
+  };
+  validationState?: {
+    invoices: Record<string, ValidationState[]>;
+    products: Record<string, ValidationState[]>;
+    customers: Record<string, ValidationState[]>;
   };
 } 
