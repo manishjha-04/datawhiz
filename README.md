@@ -1,5 +1,4 @@
-# DataWhiz (In Progress)
-
+# DataWhiz 
 **DataWhiz** is a versatile web application designed to simplify document data handling.
 
 ### Note  
