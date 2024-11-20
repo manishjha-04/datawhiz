@@ -7,6 +7,14 @@ export interface Invoice {
   tax: number;
   totalAmount: number;
   date: string;
+  makingCharges?: number;
+  debitCardCharges?: number;
+  shippingCharges?: number;
+  taxableAmount?: number;
+  cgst?: number;
+  sgst?: number;
+  gstIn?: string;
+  [key: string]: any;
 }
 
 export interface Product {
@@ -32,4 +40,11 @@ export interface ExtractedData {
   invoices: Invoice[];
   products: Product[];
   customers: Customer[];
+  metadata?: {
+    unexpectedFields?: {
+      invoices?: Record<string, string[]>;
+      products?: Record<string, string[]>;
+      customers?: Record<string, string[]>;
+    };
+  };
 } 

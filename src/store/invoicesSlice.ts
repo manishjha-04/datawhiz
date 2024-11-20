@@ -5,12 +5,18 @@ interface InvoicesState {
   items: Invoice[];
   loading: boolean;
   error: string | null;
+  metadata?: {
+    unexpectedFields?: Record<string, string[]>;
+  };
 }
 
 const initialState: InvoicesState = {
   items: [],
   loading: false,
   error: null,
+  metadata: {
+    unexpectedFields: {}
+  }
 };
 
 const invoicesSlice = createSlice({
@@ -35,8 +41,11 @@ const invoicesSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
+    setMetadata: (state, action: PayloadAction<typeof initialState.metadata>) => {
+      state.metadata = action.payload;
+    }
   },
 });
 
-export const { setInvoices, addInvoice, updateInvoice, setLoading, setError } = invoicesSlice.actions;
+export const { setInvoices, addInvoice, updateInvoice, setLoading, setError, setMetadata } = invoicesSlice.actions;
 export default invoicesSlice.reducer; 

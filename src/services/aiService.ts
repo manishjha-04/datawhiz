@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI ,GoogleGenerativeAIFetchError} from '@google/generative-ai';
 import { ExtractedData, Invoice, Product, Customer } from '../types';
-import { validateInvoiceData, validateProductData, validateCustomerData } from '../utils/validators';
+import { validateInvoiceData, validateProductData, validateCustomerData, validateProductQuantities, normalizeNumericValues } from '../utils/validators';
 import { createWorker } from 'tesseract.js';
 import * as XLSX from 'xlsx';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -84,56 +84,115 @@ async function processPDF(file: File): Promise<string> {
   return textContent.items.map(item => 'str' in item ? item.str : '').join(' ');
 }
 
-function validateAndProcessResponse(text: string): ExtractedData {
+const validateAndProcessResponse = (text: string): ExtractedData => {
   try {
     const cleanedText = text.replace(/```json\n?|\n?```/g, '').trim();
     const parsed = JSON.parse(cleanedText);
-
-    // Log the parsed data
     console.log('Parsed Data:', parsed);
 
     const validatedData: ExtractedData = {
       invoices: [],
       products: [],
-      customers: []
+      customers: [],
+      metadata: {
+        unexpectedFields: {
+          invoices: {},
+          products: {},
+          customers: {}
+        }
+      }
     };
 
-    // Safely handle potential array or object responses
-    const invoices = Array.isArray(parsed.invoices) ? parsed.invoices : 
-                     (parsed.invoices ? [parsed.invoices] : []);
-    const products = Array.isArray(parsed.products) ? parsed.products : 
-                     (parsed.products ? [parsed.products] : []);
-    const customers = Array.isArray(parsed.customers) ? parsed.customers : 
-                      (parsed.customers ? [parsed.customers] : []);
+    // Helper function to ensure array format
+    const ensureArray = (data: any) => {
+      if (!data) return [];
+      if (Array.isArray(data)) return data;
+      return [data];
+    };
 
+    // Helper function to generate UUID
+    const generateId = () => {
+      return Math.random().toString(36).substring(2) + Date.now().toString(36);
+    };
+
+    // Process invoices with unexpected fields tracking
+    const invoices = ensureArray(parsed.invoices);
     invoices.forEach((invoice: any) => {
-      const errors = validateInvoiceData(invoice);
+      // Normalize potential numeric strings
+      const normalizedInvoice = normalizeNumericValues(invoice);
+      
+      // Validate the invoice
+      const { errors, warnings, unexpectedFields } = validateInvoiceData(normalizedInvoice);
+      
       if (errors.length === 0) {
-        validatedData.invoices.push(invoice);
+        const invoiceId = normalizedInvoice.id || generateId();
+        normalizedInvoice.id = invoiceId;
+        
+        // Store unexpected fields in metadata
+        if (unexpectedFields.length > 0) {
+          validatedData.metadata!.unexpectedFields!.invoices![invoiceId] = unexpectedFields;
+        }
+        
+        validatedData.invoices.push(normalizedInvoice);
+        
+        // Log warnings but don't prevent processing
+        if (warnings.length > 0) {
+          console.warn(`Warnings for invoice ${invoiceId}:`, warnings);
+        }
+      } else {
+        console.error('Invoice validation errors:', errors);
       }
     });
 
+    // Validate and add products
+    const products = ensureArray(parsed.products);
     products.forEach((product: any) => {
       const errors = validateProductData(product);
       if (errors.length === 0) {
+        if (!product.id) {
+          product.id = generateId();
+        }
         validatedData.products.push(product);
+      } else {
+        console.warn('Product validation errors:', errors);
       }
     });
 
+    // Validate and add customers
+    const customers = ensureArray(parsed.customers);
     customers.forEach((customer: any) => {
       const errors = validateCustomerData(customer);
       if (errors.length === 0) {
+        if (!customer.id) {
+          customer.id = generateId();
+        }
         validatedData.customers.push(customer);
+      } else {
+        console.warn('Customer validation errors:', errors);
       }
     });
 
     return validatedData;
   } catch (error) {
-    console.error('Error parsing AI response:', error);
-    
-    // Optional: Add more detailed error logging
-    console.error('Original text:', text);
-    
-    throw new Error('Failed to parse extracted data. The AI response may not be in the expected JSON format.');
+    console.error('Error processing response:', error);
+    throw new Error('Failed to process AI response');
   }
-}
+};
+
+// Add a utility function to analyze unexpected fields
+export const analyzeUnexpectedFields = (extractedData: ExtractedData): void => {
+  const { metadata } = extractedData;
+  if (!metadata?.unexpectedFields) return;
+
+  console.log('=== Unexpected Fields Analysis ===');
+  
+  Object.entries(metadata.unexpectedFields).forEach(([type, fieldsMap]) => {
+    const allFields = new Set<string>();
+    Object.values(fieldsMap).forEach(fields => fields.forEach(field => allFields.add(field)));
+    
+    if (allFields.size > 0) {
+      console.log(`\n${type} unexpected fields:`);
+      console.log(Array.from(allFields).join(', '));
+    }
+  });
+};
