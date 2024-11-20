@@ -3,6 +3,8 @@
 **DataWhiz** is a versatile web application designed to simplify document data handling.
 
 ![Alt Text](./public/ss.png)
+![Screenshot 2024-11-20 112318](https://github.com/user-attachments/assets/8c1815df-ff8b-40e1-92e3-842bf6276702)
+![Screenshot 2024-11-20 112339](https://github.com/user-attachments/assets/c28b0c90-6bf3-4671-a5dc-38e46e978e2f)
 
 
 ## 🚀 **Tech Stack**
