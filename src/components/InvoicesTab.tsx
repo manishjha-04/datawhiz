@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../hooks/redux';
 import { DataTable } from './DataTable';
-import { RootState } from '../store';
+import type { RootState } from '../store';
 import { Box, Alert, Snackbar } from '@mui/material';
 
 export const InvoicesTab: React.FC = () => {
-  const { items, loading, error } = useSelector((state: RootState) => state.invoices);
-  const metadata = useSelector((state: RootState) => state.invoices.metadata);
+  const { items, loading, error } = useAppSelector((state: RootState) => state.invoices);
+  const metadata = useAppSelector((state: RootState) => state.invoices.metadata);
   const [openWarnings, setOpenWarnings] = React.useState(false);
 
   useEffect(() => {
@@ -44,24 +44,20 @@ export const InvoicesTab: React.FC = () => {
         data={items}
         loading={loading}
         error={error}
+        readOnly={true}
       />
       <Snackbar
         open={openWarnings}
         autoHideDuration={6000}
         onClose={() => setOpenWarnings(false)}
       >
-        <Alert 
-          onClose={() => setOpenWarnings(false)} 
-          severity="warning" 
-          sx={{ width: '100%' }}
-        >
-          {metadata?.unexpectedFields && 
+        <Alert severity="warning" onClose={() => setOpenWarnings(false)}>
+          {metadata?.unexpectedFields &&
             Object.entries(metadata.unexpectedFields).map(([field, warnings]) =>
-              warnings.map((warning, index) => (
+              (warnings as string[]).map((warning: string, index: number) => (
                 <div key={`${field}-${index}`}>{warning}</div>
               ))
             )}
-          
         </Alert>
       </Snackbar>
     </Box>

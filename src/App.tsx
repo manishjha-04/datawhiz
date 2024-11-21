@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { store } from './store/index';
 import { Box, Container, Grid, Tab, Tabs, Typography, Paper, ThemeProvider } from '@mui/material';
 import { FileUpload } from './components/FileUpload';
 import { InvoicesTab } from './components/InvoicesTab';
@@ -41,8 +41,8 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <Provider store={store}>
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
         <Container maxWidth="lg">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Box sx={{ my: 4 }}>
@@ -88,8 +88,8 @@ function App() {
             </Box>
           </motion.div>
         </Container>
-      </Provider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </Provider>
   );
 }
 

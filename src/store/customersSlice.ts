@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Customer } from '../types';
+import { Customer, Invoice } from '../types';
+import { setInvoices } from './invoicesSlice';
 
 interface CustomersState {
   items: Customer[];
@@ -37,6 +38,48 @@ const customersSlice = createSlice({
     },
   },
 });
+
+export const updateCustomerWithDependencies = (customer: Customer) => (dispatch: any, getState: any) => {
+  // Get the old customer data before updating
+  const state = getState();
+  const oldCustomer = state.customers.items.find((c: Customer) => c.id === customer.id);
+  
+  // Update the customer
+  dispatch(updateCustomer(customer));
+
+  // Get current invoices
+  const invoices = state.invoices.items;
+
+  // Calculate total purchase amount from invoices
+  const customerInvoices = invoices.filter(
+    (invoice: Invoice) => invoice.customerName === oldCustomer?.name
+  );
+  
+  const totalPurchaseAmount = customerInvoices.reduce(
+    (sum: number, invoice: Invoice) => sum + invoice.totalAmount,
+    0
+  );
+
+  // Update customer with new total
+  const updatedCustomer = {
+    ...customer,
+    totalPurchaseAmount: Number(totalPurchaseAmount.toFixed(2))
+  };
+  dispatch(updateCustomer(updatedCustomer));
+
+  // Update related invoices
+  const updatedInvoices = invoices.map((invoice: Invoice) => {
+    if (invoice.customerName === oldCustomer?.name) {
+      return {
+        ...invoice,
+        customerName: customer.name
+      };
+    }
+    return invoice;
+  });
+
+  dispatch(setInvoices(updatedInvoices));
+};
 
 export const { setCustomers, addCustomer, updateCustomer, setLoading, setError } = customersSlice.actions;
 export default customersSlice.reducer; 

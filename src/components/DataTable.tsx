@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -10,7 +10,12 @@ import {
   CircularProgress,
   Alert,
   Box,
+  IconButton,
+  TextField
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { motion } from 'framer-motion';
 import { ValidationFeedback } from '../components/ValidationFeedback';
 import { ValidationState } from '../types';
@@ -19,6 +24,7 @@ interface Column {
   id: string;
   label: string;
   format?: (value: any) => string;
+  editable?: boolean;
 }
 
 interface DataTableProps {
@@ -28,6 +34,8 @@ interface DataTableProps {
   error?: string | null;
   validationStates?: ValidationState[];
   onFieldFocus?: (field: string) => void;
+  onUpdate?: (id: string, updates: any) => void;
+  readOnly?: boolean;
 }
 
 export const DataTable: React.FC<DataTableProps> = ({
@@ -36,8 +44,38 @@ export const DataTable: React.FC<DataTableProps> = ({
   loading = false,
   error = null,
   validationStates = [],
-  onFieldFocus
+  onFieldFocus,
+  onUpdate,
+  readOnly = false
 }) => {
+  const [editingRow, setEditingRow] = useState<string | null>(null);
+  const [editedValues, setEditedValues] = useState<Record<string, any>>({});
+
+  const handleEditClick = (rowId: string, rowData: any) => {
+    setEditingRow(rowId);
+    setEditedValues(rowData);
+  };
+
+  const handleSave = (rowId: string) => {
+    if (onUpdate) {
+      onUpdate(rowId, editedValues);
+    }
+    setEditingRow(null);
+    setEditedValues({});
+  };
+
+  const handleCancel = () => {
+    setEditingRow(null);
+    setEditedValues({});
+  };
+
+  const handleFieldChange = (field: string, value: any) => {
+    setEditedValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -78,34 +116,51 @@ export const DataTable: React.FC<DataTableProps> = ({
       >
         <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: 'primary.light' }}>
+            <TableRow>
               {columns.map((column) => (
-                <TableCell 
-                  key={column.id}
-                  sx={{ 
-                    color: 'white',
-                    fontWeight: 600
-                  }}
-                >
-                  {column.label}
-                </TableCell>
+                <TableCell key={column.id}>{column.label}</TableCell>
               ))}
+              {!readOnly && (
+                <TableCell>Actions</TableCell>
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((row, index) => (
-              <motion.tr
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-              >
+            {data.map((row) => (
+              <TableRow key={row.id}>
                 {columns.map((column) => (
                   <TableCell key={column.id}>
-                    {column.format ? column.format(row[column.id]) : row[column.id]}
+                    {editingRow === row.id && column.editable ? (
+                      <TextField
+                        value={editedValues[column.id] || row[column.id]}
+                        onChange={(e) => handleFieldChange(column.id, e.target.value)}
+                        variant="standard"
+                        fullWidth
+                      />
+                    ) : (
+                      column.format ? column.format(row[column.id]) : row[column.id]
+                    )}
                   </TableCell>
                 ))}
-              </motion.tr>
+                {!readOnly && (
+                  <TableCell>
+                    {editingRow === row.id ? (
+                      <>
+                        <IconButton onClick={() => handleSave(row.id)} color="primary">
+                          <SaveIcon />
+                        </IconButton>
+                        <IconButton onClick={handleCancel} color="error">
+                          <CancelIcon />
+                        </IconButton>
+                      </>
+                    ) : (
+                      <IconButton onClick={() => handleEditClick(row.id, row)} color="primary">
+                        <EditIcon />
+                      </IconButton>
+                    )}
+                  </TableCell>
+                )}
+              </TableRow>
             ))}
           </TableBody>
         </Table>
