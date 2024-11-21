@@ -16,7 +16,7 @@ export const ProductsTab: React.FC = () => {
       id: 'quantity', 
       label: 'Quantity',
       format: (value: number) => value.toString(),
-      editable: true
+      // editable: true
     },
     { 
       id: 'unitPrice', 
