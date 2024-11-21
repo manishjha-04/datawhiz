@@ -28,7 +28,7 @@ export const ProductsTab: React.FC = () => {
       id: 'tax', 
       label: 'Tax',
       format: (value: number) => `${value}%`,
-      editable: true
+      // editable: true
     },
     { 
       id: 'priceWithTax', 

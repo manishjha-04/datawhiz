@@ -16,7 +16,6 @@ Invoices: serialNumber, customerName, productName, quantity, tax, totalAmount, d
 Products: name, quantity, unitPrice, tax, priceWithTax, discount (if applicable)
 Customers: name, phoneNumber, totalPurchaseAmount
 
-Note: For products, extract any applicable discount percentage. If no discount is mentioned, omit the field.
 Additional fields are optional. Ensure all numeric values are properly formatted.`;
 
 export async function extractDataFromFile(file: File): Promise<ExtractedData> {
