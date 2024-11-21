@@ -70,20 +70,35 @@ export const updateProductWithDependencies = (product: Product) => (dispatch: an
   const state = getState();
   const oldProduct = state.products.items.find((p: Product) => p.id === product.id);
   
+  // Calculate new price with tax and discount
+  const basePrice = product.quantity * product.unitPrice;
+  const taxAmount = basePrice * (product.tax / 100);
+  let finalPrice = basePrice + taxAmount;
+  
+  if (product.discount) {
+    const discountAmount = finalPrice * (product.discount / 100);
+    finalPrice = Number((finalPrice - discountAmount).toFixed(2));
+  }
+  
+  // Update product with new calculated price
+  const updatedProduct = {
+    ...product,
+    priceWithTax: finalPrice
+  };
+  
   // Update the product
-  dispatch(updateProduct(product));
+  dispatch(updateProduct(updatedProduct));
 
   // Get current invoices
   const invoices = state.invoices.items;
 
   // Update related invoices
   const updatedInvoices = invoices.map((invoice: Invoice) => {
-    // Check if this invoice contains the updated product
     if (invoice.productName.includes(oldProduct.name)) {
       // Replace old product name with new product name in the invoice
       const newProductName = invoice.productName.replace(oldProduct.name, product.name);
       
-      // Recalculate quantities and amounts
+      // Recalculate invoice totals
       const invoiceProducts = newProductName.split(', ');
       let totalQuantity = 0;
       let totalAmount = 0;
@@ -96,9 +111,15 @@ export const updateProductWithDependencies = (product: Product) => (dispatch: an
         const prod = allProducts.find((p: Product) => p.name === prodName);
         if (prod) {
           totalQuantity += prod.quantity;
-          taxableAmount += prod.quantity * prod.unitPrice;
-          totalTax += prod.tax;
-          totalAmount += prod.priceWithTax;
+          const baseAmount = prod.quantity * prod.unitPrice;
+          taxableAmount += baseAmount;
+          totalTax += baseAmount * (prod.tax / 100);
+          
+          let productTotal = baseAmount + (baseAmount * prod.tax / 100);
+          if (prod.discount) {
+            productTotal -= productTotal * (prod.discount / 100);
+          }
+          totalAmount += productTotal;
         }
       });
 
@@ -106,9 +127,9 @@ export const updateProductWithDependencies = (product: Product) => (dispatch: an
         ...invoice,
         productName: newProductName,
         quantity: totalQuantity,
-        tax: totalTax,
-        totalAmount: totalAmount,
-        taxableAmount: taxableAmount
+        tax: Number(totalTax.toFixed(2)),
+        totalAmount: Number(totalAmount.toFixed(2)),
+        taxableAmount: Number(taxableAmount.toFixed(2))
       };
     }
     return invoice;

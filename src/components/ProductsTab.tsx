@@ -46,6 +46,7 @@ export const ProductsTab: React.FC = () => {
   const handleUpdate = (id: string, updates: Record<string, any>) => {
     const currentProduct = items.find((item: Product) => item.id === id);
     if (!currentProduct) return;  
+
     const parseNumericValue = (value: any, removeSymbol?: string) => {
       if (typeof value === 'number') return value;
       if (typeof value === 'string') {
@@ -61,6 +62,8 @@ export const ProductsTab: React.FC = () => {
       ...currentProduct,
       ...updates,
     };
+
+    // Parse numeric values
     if (updates.unitPrice !== undefined) {
       updatedProduct.unitPrice = parseNumericValue(updates.unitPrice, '$');
     }
@@ -70,6 +73,8 @@ export const ProductsTab: React.FC = () => {
     if (updates.discount !== undefined) {
       updatedProduct.discount = parseNumericValue(updates.discount, '%');
     }
+
+    // Dispatch update with dependencies
     dispatch(updateProductWithDependencies(updatedProduct));
   };
 
