@@ -1,6 +1,22 @@
-# DataWhiz (In Progress)
-
+# DataWhiz 
 **DataWhiz** is a versatile web application designed to simplify document data handling.
+
+### Note  
+We are currently using the free version of the Gemini API key, which may result in slower load times or occasional failures. For a smoother and more reliable experience, we recommend using a paid API key and running the application locally.
+
+**Videos**
+
+https://github.com/user-attachments/assets/f9ffd62e-4547-4d10-abb8-ac79e7a598c8
+
+
+https://github.com/user-attachments/assets/9eab9b4a-d16c-452e-aef0-e124e8ee5722
+
+
+
+
+
+
+**ScreenShots**
 
 ![Alt Text](./public/ss.png)
 ![Screenshot 2024-11-20 112318](https://github.com/user-attachments/assets/8c1815df-ff8b-40e1-92e3-842bf6276702)
