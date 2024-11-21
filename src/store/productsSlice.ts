@@ -76,7 +76,6 @@ export const updateProductWithDependencies = (product: Product) => (dispatch: an
   let finalPrice = basePrice + taxAmount;
   
   if (product.discount) {
-    // Subtract the exact discount amount instead of calculating percentage
     finalPrice = Number((finalPrice - product.discount).toFixed(2));
   }
   
@@ -106,7 +105,13 @@ export const updateProductWithDependencies = (product: Product) => (dispatch: an
       let taxableAmount = 0;
 
       // Get all products for this invoice
-      const allProducts = state.products.items;
+      const allProducts = [...state.products.items];
+      // Fixing updation of product
+      const productIndex = allProducts.findIndex(p => p.id === product.id);
+      if (productIndex !== -1) {
+        allProducts[productIndex] = updatedProduct;
+      }
+
       invoiceProducts.forEach((prodName: string) => {
         const prod = allProducts.find((p: Product) => p.name === prodName);
         if (prod) {
@@ -115,10 +120,9 @@ export const updateProductWithDependencies = (product: Product) => (dispatch: an
           taxableAmount += baseAmount;
           totalTax += baseAmount * (prod.tax / 100);
           
-          let productTotal = baseAmount + (baseAmount * prod.tax / 100);
+          let productTotal = baseAmount ;
           if (prod.discount) {
-            // Subtract exact discount amount
-            productTotal -= prod.discount;
+            productTotal = Number((productTotal - prod.discount).toFixed(2));
           }
           totalAmount += productTotal;
         }
