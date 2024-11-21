@@ -2,7 +2,7 @@ import React from 'react';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
 import { DataTable } from './DataTable';
 import type { RootState } from '../store';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { updateProductWithDependencies } from '../store/productsSlice';
 import type { Product } from '../types';
 
@@ -45,8 +45,7 @@ export const ProductsTab: React.FC = () => {
 
   const handleUpdate = (id: string, updates: Record<string, any>) => {
     const currentProduct = items.find((item: Product) => item.id === id);
-    if (!currentProduct) return;
-
+    if (!currentProduct) return;  
     const parseNumericValue = (value: any, removeSymbol?: string) => {
       if (typeof value === 'number') return value;
       if (typeof value === 'string') {
@@ -62,7 +61,6 @@ export const ProductsTab: React.FC = () => {
       ...currentProduct,
       ...updates,
     };
-
     if (updates.unitPrice !== undefined) {
       updatedProduct.unitPrice = parseNumericValue(updates.unitPrice, '$');
     }
@@ -72,19 +70,26 @@ export const ProductsTab: React.FC = () => {
     if (updates.discount !== undefined) {
       updatedProduct.discount = parseNumericValue(updates.discount, '%');
     }
-
     dispatch(updateProductWithDependencies(updatedProduct));
   };
 
   return (
     <Box sx={{ p: 2 }}>
-      <DataTable
-        columns={columns}
-        data={items}
-        loading={loading}
-        error={error}
-        onUpdate={handleUpdate}
-      />
+      {loading ? (
+        <Typography>Loading...</Typography>
+      ) : error ? (
+        <Typography color="error">{error}</Typography>
+      ) : items.length === 0 ? (
+        <Typography>No data available Or missing Required Fields</Typography>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={items}
+          loading={loading}
+          error={error}
+          onUpdate={handleUpdate}
+        />
+      )}
     </Box>
   );
 }; 

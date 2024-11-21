@@ -145,7 +145,7 @@ export const validateProductData = (product: any): string[] => {
 
 export const validateCustomerData = (customer: any): string[] => {
   const errors: string[] = [];
-  const requiredFields = ['name', 'phoneNumber', 'totalPurchaseAmount'];
+  const requiredFields = ['name', 'totalPurchaseAmount'];
 
   requiredFields.forEach(field => {
     if (!customer[field]) {
