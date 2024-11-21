@@ -76,8 +76,8 @@ export const updateProductWithDependencies = (product: Product) => (dispatch: an
   let finalPrice = basePrice + taxAmount;
   
   if (product.discount) {
-    const discountAmount = finalPrice * (product.discount / 100);
-    finalPrice = Number((finalPrice - discountAmount).toFixed(2));
+    // Subtract the exact discount amount instead of calculating percentage
+    finalPrice = Number((finalPrice - product.discount).toFixed(2));
   }
   
   // Update product with new calculated price
@@ -117,7 +117,8 @@ export const updateProductWithDependencies = (product: Product) => (dispatch: an
           
           let productTotal = baseAmount + (baseAmount * prod.tax / 100);
           if (prod.discount) {
-            productTotal -= productTotal * (prod.discount / 100);
+            // Subtract exact discount amount
+            productTotal -= prod.discount;
           }
           totalAmount += productTotal;
         }

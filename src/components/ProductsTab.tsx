@@ -38,7 +38,7 @@ export const ProductsTab: React.FC = () => {
     { 
       id: 'discount', 
       label: 'Discount',
-      format: (value: number) => value ? `${value}%` : 'N/A',
+      format: (value: number) => value ? `$${value.toFixed(2)}` : 'N/A',
       editable: true
     },
   ];
@@ -71,7 +71,7 @@ export const ProductsTab: React.FC = () => {
       updatedProduct.tax = parseNumericValue(updates.tax, '%');
     }
     if (updates.discount !== undefined) {
-      updatedProduct.discount = parseNumericValue(updates.discount, '%');
+      updatedProduct.discount = parseNumericValue(updates.discount, '$');
     }
 
     // Dispatch update with dependencies
