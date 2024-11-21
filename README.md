@@ -4,9 +4,15 @@
 ### Note  
 We are currently using the free version of the Gemini API key, which may result in slower load times or occasional failures. For a smoother and more reliable experience, we recommend using a paid API key and running the application locally.
 
-**Videos**
+**Updated Videos**
 
-https://github.com/user-attachments/assets/f9ffd62e-4547-4d10-abb8-ac79e7a598c8
+
+
+https://github.com/user-attachments/assets/d178dc0a-d296-4749-9e7e-c21e7b7f8898
+
+
+
+**Old Videos**
 
 
 https://github.com/user-attachments/assets/9eab9b4a-d16c-452e-aef0-e124e8ee5722
